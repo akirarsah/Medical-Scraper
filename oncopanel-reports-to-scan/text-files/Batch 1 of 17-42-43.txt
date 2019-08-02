@@ -1,0 +1,124 @@
+ Accession No.: BL-13-M24888
+
+Department of Pathology
+Center for Advanced Molecular Diagnostics Unit Number(s): BWH 027-08-782
+75 Francis Street, Boston, MA 02115 DFCI 603-76-2
+
+Tel (857) 307-1500 Fax (857) 307-1522 Patient Name: BARRETT, KEITH J
+
+Birth Date: 7/22/1952
+Age Sex: 61 Year old Male 
+
+
+
+ 
+
+Specimen Submitted Facility Lab Control Number/MRN Hospital Location
+
+A. Molec Dx Fixed tissue/block BWH Doctor Office
+Received Report Date Procedure Date
+7/31/2013 7/31/2013
+
+Physician (s)/Copies to:
+DEBORAH SCHRAG MD,
+
+Test Performed - MDOMAP4 B
+
+Test Description - OncoMap 4
+
+Accession numbers on blocks submitted - BS-13-09200
+
+Original Pathologic Diagnosis - Colon Adenocarcinoma
+
+Original Specimen Collection Date -
+
+Estimated percentage of neoplastic cells in submitted specimen - 70%
+
+CLINICAL DATA:
+
+Clinical Diagnosis:
+
+RESULTS
+
+DNA VARIANTS:
+
+BRAF c.1799T>A (p.Val600Glu, p.V600E, GTG>GAG), exon 15
+
+INTERPRETATION:
+
+BRAF codon 600 mutation predicts lack of response to therapy with antibodies targeted to
+the epidermal grown factor receptor (e.g.cetuximab, panitumumab)
+
+NEGATIVE for following mutations with clinical relevance for this tumor type: AKT1
+
+STDS D'S
+
+.EL7K, APC p.E1306*, APC p.E1309fs*4, APC p.E1309fs*6, APC p.E1379*, APC p.Q1338*, APC
+.Q1367*, APC p.Q1378*, APC p.Q1429*, APC p.R1114*, APC p.R1450*, APC p.R876*, APC
+.S1465fs*3, APC p.T1556fs*3, BRAF p.T599 V600insTT, EGFR p.D770_N77linsN, EGFR
+.E746_A750>V, EGFR p.E746_A750del, EGFR p.E746 A750del, EGFR p.E746_S752>A, EGFR
+.E746_S752>V, EGFR p.E746_T751>A, EGFR p.E746_T751del, EGFR p.E746K, EGFR p.G719A, EGFR
+.G719C, EGFR p.G719D, EGFR p.G719S, EGFR p.1744_A750>VK, EGFR p.L747_A750>P, EGFR
+
+DEBORAH SCHRAG, M.D. CLIA: 22D2040971
+DFCI Laboratory Director:
+ONCOLOGY Dr. Neal Lindeman
+
+45 Brookline Ave
+BOSTON, MA 02115
+ 
+
+
+
+
+ 
+
+p.L747_A750>P, EGFR p.L747_E749del, EGFR p.L747_P753>Q, EGFR p.L747_P753>S, EGFR
+p.L747_R748>FP, EGFR p.L747_S752del, EGFR p.L747_T751>P, EGFR p.L747_1751>S, EGFR
+p.L747_T751del, EGFR p.L858R, EGFR p.L858R, EGFR p.L858R, EGFR p.L861Q, EGFR
+p.N771_P772>SVDNR, EGFR p.P772_H773insV, EGFR p.S752_I759del, EGFR p.S768I, EGFR p.T790M,
+EGFR p.V769_D770insASV, EGFR p.V769 D770insASV, KRAS p.A146T, KRAS p.A59T, KRAS p.G12A,
+KRAS p.G12C, KRAS p.G12D, KRAS p.G12R, KRAS p.G12S, KRAS p.G12V, KRAS p.G13A, KRAS
+p.G13C, KRAS p.G13D, KRAS p.G13R, KRAS p.G13S, KRAS p.G13V, KRAS p.L19F, KRAS p.L19F,
+KRAS p.Q22K, KRAS p.Q61E, KRAS p.Q61H, KRAS p.Q61H, KRAS p.Q61K, KRAS p.Q61L, KRAS
+p.Q61P, KRAS p.Q61R, MLH1 p.V384D
+
+The following assays did not yield satisfactory results:
+STK11_P281L
+
+TEST INFORMATION
+
+Background:
+
+Somatic mutations in oncogenes and tumor-suppressor genes contribute to the
+pathogenesis and evolution of human cancers. These alterations can provide prognostic and
+predictive information and stratify cancers for targeted therapeutic information.
+
+Method:
+
+We have developed a multiplexed assay to detect somatic mutations in tumor DNA
+extracted from fresh, frozen or formalin-fixed paraffin-embedded samples. The assay
+OncoMap 4 detects mutations in 472 different loci from 41 cancer genes. DNA is isolated
+from tissue containing at least 50% tumor nuclei and analyzed by multiplex PCR
+amplification of the region containing the nucleotide variant of interest, an optimized
+primer extension reaction to generate allele-specific DNA products, and chip-based mass
+spectrometry for separation and analysis of the DNA analytes (Sequenom MassARRAY 4). The
+41 genes are: ABL1, AKT1, AKT2, APC, BRAF, CDK4, CDKN2A, CSF1R, CTNNB1, EGFR, ERBB2,
+FGFR1, FGFR2, FGFR3, FLT3, GNAl11, GNAQ, GNAS, HRAS, IDH1, IDH2, JAK2, JAK3, KIT, KRAS,
+MAP2K1, MET, MLH1, MYC, NPM1, NRAS, PDGFRA, PIK3CA, PIK3R1, PTEN, RB1, RET, SRC, STK11,
+TP53, VHL. A full listing of the loci tested can be found at )PCMP, or by contacting the
+Center for Advanced Molecular Diagnostics (857-307-1500).
+
+These tests were developed and their performance characteristics determined by the
+, . They have not been
+cleared or approved by the U.S. Food and Drug Administration. The FDA has determined that
+such clearance or approval is not necessary.
+
+REFERENCES:
+
+Di Nicolantonio, F et al. Wild-type BRAF is required for response to panitumumab or
+cetuximab in metastatic colorectal cancer. J Clin Oncol (2008) 26:5705
+
+By his/her signature below, the senior physician certifies that he/she personally
+reviewed all the laboratory data of the described specimen(s) and rendered or confirmed
+the diagnosis(es) related thereto.
