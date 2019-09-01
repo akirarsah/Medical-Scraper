@@ -16,15 +16,16 @@ xl_directory = 'oncopanel-spreadsheets.xlsx'
 genes_directory = '447-genes.txt'
 xl_sheet1 = 'Report Data'
 
-# search parameters
-ol_l_dist = 5  # Approximity of one line search on pdf text
-header_l_dist = 3  # Approximity of header search on pdf text
-def_empty = 'None'  # What to enter on cell if info is not on pdf
-
 # text format of header
 headers = ['Brigham and Women’s Hospital', 'Molecular Diagnostics Laboratory', 'MOLECULAR DIAGNOSTICS REPORT',
            'Page x of y', 'Accession: {} Patient Name: {}']
 
+# search parameters
+ol_l_dist = 5  # Approximity of one line search on pdf text
+bl_l_dist = 1  # Approximity of block search on pdf text
+header_l_dist = 3  # Approximity of header search on pdf text
+def_empty = 'None'  # What to enter on cell if info is not on pdf
+delimiter = '\n'
 # keywords and column names for extraction
 keyword_to_column = OrderedDict([('Accession numbers on blocks submitted - ', 'Accession Number'),
                                  ('Accession No.: ', 'BL Accession Number'),
@@ -63,7 +64,8 @@ def main():
     genes = read_genes_file(genes_directory)
 
     # create the dataframe for scanned data
-    df_columns = list(keyword_to_column.values())
+    df_columns = list(keyword_to_column.values())[:-1]
+    df_columns.insert(0, "Filename")
     for gene in genes:
         for gene_column in gene_columns:
             df_columns.append('{} {}'.format(gene, gene_column))
@@ -76,10 +78,13 @@ def main():
         print("({}/{}) Working with {}".format(str(index+1), str(len(pdfs)), filename))
         text_file_dir = text_directory + filename[:-4:] + '.txt'
         # check if the file has been scanned before
+        text_exists = False
+        # access text file and read contents
         if os.path.exists('./' + text_file_dir):
             with open('./' + text_file_dir, 'r') as file:
                 text = file.read()
                 file.close()
+                text_exists = True
             print('\tScan found in text directory')
         # scan the pdf
         else:
@@ -93,26 +98,28 @@ def main():
                 file.close()
             # end ocrmypdf branch
 
-            #print("\tScanning...", end='')
-            #text = textract.process('.' + pdf_directory + filename, method='tesseract', language='eng').decode()
+            # textract branch
+            # text = textract.process('.' + pdf_directory + filename, method='tesseract', language='eng').decode()
+            # end of textract branch
             print("completed")
 
         print("\tScraping...", end='')
-        for_index, for_columns, text = scraper(text, genes)
+        data_index, data_columns, text = scraper(text, genes, filename)
         # add columns to DataFrame
-        new_df.loc[for_index] = for_columns
+        new_df.loc[data_index] = data_columns
         print('completed')
 
         # write the text file
-        print("\tWriting text file...", end='')
-        with open('./' + text_file_dir, "w+") as file:
-            file.write(text)
-            file.close()
-        print("completed")
+        if not text_exists:
+            print("\tWriting text file...", end='')
+            with open('./' + text_file_dir, "w+") as file:
+                file.write(text)
+                file.close()
+            print("completed")
 
     # Excel insertion starts
     print("Writing Excel file...", end='')
-    # xl_df = xl_df.append(new_df).drop_duplicates()
+    #xl_df = xl_df.append(new_df, sort=False).drop_duplicates()
     xl_df = new_df
     writer = pd.ExcelWriter(xl_directory, engine='xlsxwriter')
     xl_df.to_excel(writer, xl_sheet1)
@@ -121,9 +128,9 @@ def main():
     print("completed")
 
 
-def scraper(text, genes):
+def scraper(text, genes, filename):
     for_index = def_empty
-    for_columns = {}
+    for_columns = {"Filename": filename}
     removed = False
     for index, (term, column) in enumerate(keyword_to_column.items()):
         for_result = def_empty
@@ -143,6 +150,8 @@ def scraper(text, genes):
         # block searches
         elif index < len(keyword_to_column) - 1:
             for_result = block_search(text, index)
+            if for_result is None:
+                for_result = def_empty
             # print("{} {}".format(term, list(keyword_to_column.items())[index+1][0]))
             if index < list(keyword_to_column.keys()).index('Tier 1 variants:'):
                 numbers = [s for s in re.split(' |%', for_result) if s.isdigit()]
@@ -151,13 +160,12 @@ def scraper(text, genes):
             # record result of search
         if column == df_index:
             for_index = for_result
-        else:
+        elif index < len(keyword_to_column) - 1:
             for_columns[column] = for_result
     # gene scraping
 
-    CNVs = for_columns['Copy Number Variations'].split('$')
-    TVs = [TV for i in range(1, 6) for TV in for_columns['Tier {} Variants'.format(str(i))].split('$')]
-    #TVs = (for_columns['Tier 1 Variants'] + '$' + for_columns['Tier 2 Variants'] + '$' + for_columns['Tier 3 Variants'] + '$' + for_columns['Tier 4 Variants'] + '$' + for_columns['Tier 5 Variants']).split('$')
+    CNVs = for_columns['Copy Number Variations'].split(delimiter)
+    TVs = [TV for i in range(1, 6) for TV in for_columns['Tier {} Variants'.format(str(i))].split(delimiter)]
     for gene in genes:
         CNV_outputs = {'CNV Type': def_empty, 'CNV Locus': def_empty}
         TV_outputs = {'DNA Change': def_empty, 'Protein Change': def_empty, 'Exon': def_empty, '% Reads': def_empty}
@@ -176,7 +184,7 @@ def scraper(text, genes):
                     TV_outputs['DNA Change'] = commadd(TV_outputs['DNA Change'], TV[TV.find(gene) + len(gene)::].split()[0])
                     TV_outputs['Protein Change'] = commadd(TV_outputs['Protein Change'], TV[TV.find('(') + 1:TV.find(')'):])
                     TV_outputs['Exon'] = commadd(TV_outputs['Exon'], TV[TV.find('exon') + len('exon')::].split()[0])
-                    reads_search = find_near_matches_r('- in ab% of xyz reads', TV, max_l_dist=7)
+                    reads_search = find_near_matches_r('in ab% of xyz reads', TV, max_l_dist=7)
                     if reads_search:
                         TV_outputs['% Reads'] = commadd(TV_outputs['% Reads'], TV[reads_search[0].start:reads_search[0].end:])
                 except IndexError:
@@ -188,8 +196,6 @@ def scraper(text, genes):
             for_columns[gene + ' ' + TV_att] = TV_outputs[TV_att]
         for CNV_att in CNV_outputs.keys():
             for_columns[gene + ' ' + CNV_att] = CNV_outputs[CNV_att]
-
-        #DNA Change, Protein Change, Exon, % Reads, CNV Type, CNV Locus
 
     return for_index, for_columns, text
 
@@ -217,23 +223,36 @@ def ol_search(text, keyword):  # Returns one line after keyword
 
 def block_search(text, key_index):  # removes the stuff in between
     keys_list = list(keyword_to_column.keys())
-    searchresult = find_near_matches_r(keys_list[key_index], text, max_l_dist=ol_l_dist)
-    if not searchresult:
-        return def_empty
+    searchresult = find_near_matches_r(keys_list[key_index], text, max_l_dist=bl_l_dist)
+    if searchresult is None or len(searchresult) == 0:
+        searchresult = find_near_matches_r(keys_list[key_index].capitalize(), text, max_l_dist=bl_l_dist)
+        if searchresult is None or len(searchresult) == 0:
+            return def_empty
     else:
         startindex = searchresult[0].end
         endsearch = []
-        i=0
+        i = 0
         while not endsearch and key_index < len(keys_list) and i < 2:
             key_index += 1
             i += 1
-            endsearch = find_near_matches_r(keys_list[key_index], text[startindex::], max_l_dist=ol_l_dist)
+            endsearch = find_near_matches_r(keys_list[key_index], text[startindex::], max_l_dist=bl_l_dist)
+            endsearch2 = find_near_matches_r(keys_list[key_index].capitalize(), text, max_l_dist=bl_l_dist)
+            if endsearch2 is not None and len(endsearch2) > 0:
+                if endsearch is not None and len(endsearch) > 0:
+                    if endsearch[0].start > endsearch2[0].start:
+                        endsearch = endsearch2
+                else:
+                    endsearch = endsearch2
+            if len(keys_list) > key_index + 1:
+                nextsearch = find_near_matches_r(keys_list[key_index + 1], text[startindex::], max_l_dist=bl_l_dist)
+                if endsearch is not None and len(endsearch) > 0 and nextsearch is not None and len(nextsearch) > 0:
+                    if nextsearch[0].start < endsearch[0].start:
+                        endsearch = nextsearch
         if not endsearch:
             return def_empty
         else:
             endindex = endsearch[0].start + startindex
-        #replace newline with commas
-        return text[startindex:endindex:].lstrip().rstrip().replace('\n', '$ ')
+        return text[startindex:endindex:].lstrip().rstrip().replace('\n', delimiter)
 
 
 # rearranges the search result by l_dist, the way it should've been :P
