@@ -8,6 +8,7 @@ from fuzzysearch import find_near_matches
 from openpyxl.utils.dataframe import dataframe_to_rows
 import openpyxl
 import pandas as pd
+import functools
 
 # directory names
 pdf_directory = 'oncopanel-reports-to-scan/'
@@ -26,6 +27,7 @@ bl_l_dist = 1  # Approximity of block search on pdf text
 header_l_dist = 3  # Approximity of header search on pdf text
 def_empty = 'None'  # What to enter on cell if info is not on pdf
 delimiter = '\n'
+
 # keywords and column names for extraction
 keyword_to_column = OrderedDict([('Accession numbers on blocks submitted - ', 'Accession Number'),
                                  ('Accession No.: ', 'BL Accession Number'),
@@ -59,7 +61,10 @@ df_index = 'Accession Number'
 def main():
     # open the Excel file and the sheet (we want to make sure something's saved!)
     xl_df = pd.read_excel(xl_directory, sheet_name=xl_sheet1)
-
+    if df_index in xl_df.columns:
+        xl_df.set_index(df_index, inplace=True)
+    else:
+        print('The key of this dataframe, ' + df_index + ', is not present in the Excel spreadsheet.')
     # get columns for 447 genes
     genes = read_genes_file(genes_directory)
 
@@ -73,7 +78,7 @@ def main():
 
     # iterate through all pdf files in the pdf directory
     pdfs = [filename for filename in os.listdir(os.getcwd() + '/' + pdf_directory) if filename.endswith(".pdf")]
-    pdfs.sort()
+    pdfs.sort(key=functools.cmp_to_key(filename_comparator))
     for index, filename in enumerate(pdfs):
         print("({}/{}) Working with {}".format(str(index+1), str(len(pdfs)), filename))
         text_file_dir = text_directory + filename[:-4:] + '.txt'
@@ -101,6 +106,7 @@ def main():
             # textract branch
             # text = textract.process('.' + pdf_directory + filename, method='tesseract', language='eng').decode()
             # end of textract branch
+
             print("completed")
 
         print("\tScraping...", end='')
@@ -119,8 +125,7 @@ def main():
 
     # Excel insertion starts
     print("Writing Excel file...", end='')
-    #xl_df = xl_df.append(new_df, sort=False).drop_duplicates()
-    xl_df = new_df
+    xl_df = xl_df.append(new_df, sort=False).drop_duplicates()
     writer = pd.ExcelWriter(xl_directory, engine='xlsxwriter')
     xl_df.to_excel(writer, xl_sheet1)
     writer.save()
@@ -129,6 +134,7 @@ def main():
 
 
 def scraper(text, genes, filename):
+    # insert filename on the dataframe
     for_index = def_empty
     for_columns = {"Filename": filename}
     removed = False
@@ -162,8 +168,8 @@ def scraper(text, genes, filename):
             for_index = for_result
         elif index < len(keyword_to_column) - 1:
             for_columns[column] = for_result
-    # gene scraping
 
+    # gene scraping
     CNVs = for_columns['Copy Number Variations'].split(delimiter)
     TVs = [TV for i in range(1, 6) for TV in for_columns['Tier {} Variants'.format(str(i))].split(delimiter)]
     for gene in genes:
@@ -221,7 +227,7 @@ def ol_search(text, keyword):  # Returns one line after keyword
         return text[startindex:endindex:].lstrip().rstrip()
 
 
-def block_search(text, key_index):  # removes the stuff in between
+def block_search(text, key_index):  # Returns the stuff in between two terms, adapts if end term not found
     keys_list = list(keyword_to_column.keys())
     searchresult = find_near_matches_r(keys_list[key_index], text, max_l_dist=bl_l_dist)
     if searchresult is None or len(searchresult) == 0:
@@ -231,23 +237,25 @@ def block_search(text, key_index):  # removes the stuff in between
     else:
         startindex = searchresult[0].end
         endsearch = []
-        i = 0
-        while not endsearch and key_index < len(keys_list) and i < 2:
-            key_index += 1
-            i += 1
-            endsearch = find_near_matches_r(keys_list[key_index], text[startindex::], max_l_dist=bl_l_dist)
-            endsearch2 = find_near_matches_r(keys_list[key_index].capitalize(), text, max_l_dist=bl_l_dist)
+        i = 1
+        while not endsearch and key_index + i < len(keys_list) and i < 3:
+            endsearch = find_near_matches_r(keys_list[key_index + i], text[startindex::], max_l_dist=bl_l_dist)
+            endsearch2 = find_near_matches_r(keys_list[key_index + i].capitalize(), text[startindex::], max_l_dist=bl_l_dist)
             if endsearch2 is not None and len(endsearch2) > 0:
                 if endsearch is not None and len(endsearch) > 0:
                     if endsearch[0].start > endsearch2[0].start:
                         endsearch = endsearch2
                 else:
                     endsearch = endsearch2
-            if len(keys_list) > key_index + 1:
-                nextsearch = find_near_matches_r(keys_list[key_index + 1], text[startindex::], max_l_dist=bl_l_dist)
-                if endsearch is not None and len(endsearch) > 0 and nextsearch is not None and len(nextsearch) > 0:
-                    if nextsearch[0].start < endsearch[0].start:
+            if len(keys_list) > key_index + i + 1:
+                nextsearch = find_near_matches_r(keys_list[key_index + i + 1], text[startindex::], max_l_dist=bl_l_dist)
+                if nextsearch is not None and len(nextsearch) > 0:
+                    if endsearch is not None and len(endsearch) > 0:
+                        if nextsearch[0].start < endsearch[0].start:
+                            endsearch = nextsearch
+                    else:
                         endsearch = nextsearch
+            i += 1
         if not endsearch:
             return def_empty
         else:
@@ -288,6 +296,33 @@ def cnv_type(CNV):
         if find_near_matches(cnv_type, CNV, max_l_dist=1):
             return str(index + 1)
     return str(0)
+
+
+def filename_comparator(filename1, filename2):
+    try:
+        words1 = [word for word in re.split(' |-', filename1)]
+        words2 = [word for word in re.split(' |-', filename2)]
+        n = len(words1) if len(words1) < len(words2) else len(words2)
+        for i in range(0, n):
+            if words1[i].isdigit() and words2[i].isdigit():
+                if int(words1[i]) < int(words2[i]):
+                    return -1
+                elif int(words1[i]) > int(words2[i]):
+                    return 1
+            else:
+                if words1[i] < words2[i]:
+                    return -1
+                elif words1[i] > words2[i]:
+                    return 1
+            if i == n - 1:
+                return 0
+    except IndexError:
+        if filename1 < filename2:
+            return -1
+        elif filename1 > filename2:
+            return 1
+        else:
+            return 0
 
 
 main()
