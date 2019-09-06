@@ -2,11 +2,11 @@ import textract
 import subprocess
 import os
 import re
-import sys
+#import sys
 from collections import OrderedDict
 from fuzzysearch import find_near_matches
-from openpyxl.utils.dataframe import dataframe_to_rows
-import openpyxl
+#from openpyxl.utils.dataframe import dataframe_to_rows
+#import openpyxl
 import pandas as pd
 import functools
 
@@ -97,14 +97,14 @@ def main():
 
             # ocrmypdf branch
             #print('ocrmypdf --output-type pdf --deskew --clean --sidecar \"' + text_file_dir + '\" \"' + pdf_directory + filename + '\" \"' + pdf_directory + filename + '\"')
-            subprocess.call('ocrmypdf --output-type pdf --force-ocr --deskew --clean --sidecar \"' + text_file_dir + '\" \"' + pdf_directory + filename + '\" \"' + pdf_directory + filename + '\"', shell=True)
-            with open('./' + text_file_dir, 'r') as file:
-                text = file.read()
-                file.close()
+            # subprocess.call('ocrmypdf --output-type pdf --force-ocr --deskew --clean --sidecar \"' + text_file_dir + '\" \"' + pdf_directory + filename + '\" \"' + pdf_directory + filename + '\"', shell=True)
+            # with open('./' + text_file_dir, 'r') as file:
+                # text = file.read()
+                # file.close()
             # end ocrmypdf branch
 
             # textract branch
-            # text = textract.process('.' + pdf_directory + filename, method='tesseract', language='eng').decode()
+            text = textract.process('.' + pdf_directory + filename, method='tesseract', language='eng').decode()
             # end of textract branch
 
             print("completed")
